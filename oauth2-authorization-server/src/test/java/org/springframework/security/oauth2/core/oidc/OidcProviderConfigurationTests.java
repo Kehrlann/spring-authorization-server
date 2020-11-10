@@ -25,7 +25,7 @@ import java.util.Map;
 import java.util.Set;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatIllegalArgumentException;
 
 /**
  * Tests for {@link OidcProviderConfiguration}.
@@ -156,16 +156,39 @@ public class OidcProviderConfigurationTests {
 	}
 
 	@Test
+	public void buildWhenDefaultClaimsThenDefaultsSet() {
+		OidcProviderConfiguration providerConfiguration = OidcProviderConfiguration
+				.withDefaultClaims()
+				.issuer("https://example.com/issuer1")
+				.authorizationEndpoint("https://example.com/issuer1/oauth2/authorize")
+				.tokenEndpoint("https://example.com/issuer1/oauth2/token")
+				.jwkSetUri("https://example.com/issuer1/oauth2/jwks")
+				.build();
+
+		assertThat(providerConfiguration.getIssuer()).isEqualTo(url("https://example.com/issuer1"));
+		assertThat(providerConfiguration.getAuthorizationEndpoint()).isEqualTo(url("https://example.com/issuer1/oauth2/authorize"));
+		assertThat(providerConfiguration.getTokenEndpoint()).isEqualTo(url("https://example.com/issuer1/oauth2/token"));
+		assertThat(providerConfiguration.getTokenEndpointAuthenticationMethods()).containsExactlyInAnyOrder("client_secret_basic", "client_secret_post");
+		assertThat(providerConfiguration.getJwkSetUri()).isEqualTo(url("https://example.com/issuer1/oauth2/jwks"));
+		assertThat(providerConfiguration.getScopes()).containsExactly("openid");
+		assertThat(providerConfiguration.getResponseTypes()).containsExactly("code");
+		assertThat(providerConfiguration.getGrantTypes()).containsExactlyInAnyOrder("authorization_code", "client_credentials", "refresh_token");
+		assertThat(providerConfiguration.getSubjectTypes()).containsExactly("public");
+		assertThat(providerConfiguration.getIdTokenSigningAlgorithms()).containsExactly("RS256");
+	}
+
+	@Test
 	public void withClaimsWhenNullThenThrowIllegalArgumentException() {
-		assertThatThrownBy(() -> OidcProviderConfiguration.withClaims(null))
-				.isInstanceOf(IllegalArgumentException.class);
+		assertThatIllegalArgumentException().isThrownBy(() -> OidcProviderConfiguration.withClaims(null))
+				.isInstanceOf(IllegalArgumentException.class)
+				.withMessage("claims cannot be empty");
 	}
 
 	@Test
 	public void withClaimsWhenMissingRequiredClaimsThenThrowIllegalArgumentException() {
-		assertThatThrownBy(() -> OidcProviderConfiguration.withClaims(Collections.emptyMap()))
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("claims cannot be empty");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> OidcProviderConfiguration.withClaims(Collections.emptyMap()))
+				.withMessage("claims cannot be empty");
 	}
 
 	@Test
@@ -190,13 +213,24 @@ public class OidcProviderConfigurationTests {
 	}
 
 	@Test
+	public void buildWhenEmptyClaimsThenOmitted() {
+		OidcProviderConfiguration providerConfiguration = this.minimalConfigurationBuilder
+				.claim("some-claim", Collections.emptyList())
+				.claims(claims -> claims.put(OidcProviderMetadataClaimNames.GRANT_TYPES_SUPPORTED, Collections.emptyList()))
+				.build();
+
+		assertThat(providerConfiguration.getClaimAsStringList("some-claim")).isNull();
+		assertThat(providerConfiguration.getClaimAsStringList(OidcProviderMetadataClaimNames.GRANT_TYPES_SUPPORTED)).isNull();
+	}
+
+	@Test
 	public void buildWhenMissingIssuerThenThrowIllegalArgumentException() {
 		OidcProviderConfiguration.Builder builder = this.minimalConfigurationBuilder
 				.claims((claims) -> claims.remove(OidcProviderMetadataClaimNames.ISSUER));
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("issuer cannot be null");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessage("issuer cannot be null");
 	}
 
 	@Test
@@ -204,9 +238,9 @@ public class OidcProviderConfigurationTests {
 		OidcProviderConfiguration.Builder builder = this.minimalConfigurationBuilder
 				.claims((claims) -> claims.put(OidcProviderMetadataClaimNames.ISSUER, "not an url"));
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("issuer must be a valid URL");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessage("issuer must be a valid URL");
 	}
 
 	@Test
@@ -214,9 +248,9 @@ public class OidcProviderConfigurationTests {
 		OidcProviderConfiguration.Builder builder = this.minimalConfigurationBuilder
 				.claims((claims) -> claims.remove(OidcProviderMetadataClaimNames.AUTHORIZATION_ENDPOINT));
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("authorizationEndpoint cannot be null");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessage("authorizationEndpoint cannot be null");
 	}
 
 	@Test
@@ -224,9 +258,9 @@ public class OidcProviderConfigurationTests {
 		OidcProviderConfiguration.Builder builder = this.minimalConfigurationBuilder
 				.claims((claims) -> claims.put(OidcProviderMetadataClaimNames.AUTHORIZATION_ENDPOINT, "not an url"));
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessageStartingWith("authorizationEndpoint must be a valid URL");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessageStartingWith("authorizationEndpoint must be a valid URL");
 	}
 
 	@Test
@@ -234,9 +268,9 @@ public class OidcProviderConfigurationTests {
 		OidcProviderConfiguration.Builder builder = this.minimalConfigurationBuilder
 				.claims((claims) -> claims.remove(OidcProviderMetadataClaimNames.TOKEN_ENDPOINT));
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("tokenEndpoint cannot be null");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessage("tokenEndpoint cannot be null");
 	}
 
 	@Test
@@ -244,9 +278,9 @@ public class OidcProviderConfigurationTests {
 		OidcProviderConfiguration.Builder builder = this.minimalConfigurationBuilder
 				.claims((claims) -> claims.put(OidcProviderMetadataClaimNames.TOKEN_ENDPOINT, "not an url"));
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessageStartingWith("tokenEndpoint must be a valid URL");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessageStartingWith("tokenEndpoint must be a valid URL");
 	}
 
 	@Test
@@ -254,9 +288,9 @@ public class OidcProviderConfigurationTests {
 		OidcProviderConfiguration.Builder builder = this.minimalConfigurationBuilder
 				.claims((claims) -> claims.remove(OidcProviderMetadataClaimNames.JWKS_URI));
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("jwksUri cannot be null");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessage("jwksUri cannot be null");
 	}
 
 	@Test
@@ -264,9 +298,9 @@ public class OidcProviderConfigurationTests {
 		OidcProviderConfiguration.Builder builder = this.minimalConfigurationBuilder
 				.claims((claims) -> claims.put(OidcProviderMetadataClaimNames.JWKS_URI, "not an url"));
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessageStartingWith("jwksUri must be a valid URL");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessageStartingWith("jwksUri must be a valid URL");
 	}
 
 	@Test
@@ -274,9 +308,9 @@ public class OidcProviderConfigurationTests {
 		OidcProviderConfiguration.Builder builder = this.minimalConfigurationBuilder
 				.claims((claims) -> claims.remove(OidcProviderMetadataClaimNames.RESPONSE_TYPES_SUPPORTED));
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("responseTypes cannot be null");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessage("responseTypes cannot be null");
 	}
 
 	@Test
@@ -287,9 +321,9 @@ public class OidcProviderConfigurationTests {
 					claims.put(OidcProviderMetadataClaimNames.RESPONSE_TYPES_SUPPORTED, "code");
 				});
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessageContaining("responseTypes must be of type List");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessageContaining("responseTypes must be of type List");
 	}
 
 	@Test
@@ -300,9 +334,9 @@ public class OidcProviderConfigurationTests {
 					claims.put(OidcProviderMetadataClaimNames.RESPONSE_TYPES_SUPPORTED, Collections.emptyList());
 				});
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessageContaining("responseTypes cannot be empty");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessageContaining("responseTypes cannot be empty");
 	}
 
 	@Test
@@ -310,9 +344,9 @@ public class OidcProviderConfigurationTests {
 		OidcProviderConfiguration.Builder builder = this.minimalConfigurationBuilder
 				.claims((claims) -> claims.remove(OidcProviderMetadataClaimNames.SUBJECT_TYPES_SUPPORTED));
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("subjectTypes cannot be null");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessage("subjectTypes cannot be null");
 	}
 
 	@Test
@@ -323,9 +357,9 @@ public class OidcProviderConfigurationTests {
 					claims.put(OidcProviderMetadataClaimNames.SUBJECT_TYPES_SUPPORTED, "public");
 				});
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessageContaining("subjectTypes must be of type List");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessageContaining("subjectTypes must be of type List");
 	}
 
 	@Test
@@ -336,9 +370,9 @@ public class OidcProviderConfigurationTests {
 					claims.put(OidcProviderMetadataClaimNames.SUBJECT_TYPES_SUPPORTED, Collections.emptyList());
 				});
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessageContaining("subjectTypes cannot be empty");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessageContaining("subjectTypes cannot be empty");
 	}
 
 	@Test
@@ -346,9 +380,9 @@ public class OidcProviderConfigurationTests {
 		OidcProviderConfiguration.Builder builder = this.minimalConfigurationBuilder
 				.claims((claims) -> claims.remove(OidcProviderMetadataClaimNames.ID_TOKEN_SIGNING_ALG_VALUES_SUPPORTED));
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("idTokenSigningAlgorithms cannot be null");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessage("idTokenSigningAlgorithms cannot be null");
 	}
 
 	@Test
@@ -359,9 +393,9 @@ public class OidcProviderConfigurationTests {
 					claims.put(OidcProviderMetadataClaimNames.ID_TOKEN_SIGNING_ALG_VALUES_SUPPORTED, "RS256");
 				});
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessageContaining("idTokenSigningAlgorithms must be of type List");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessageContaining("idTokenSigningAlgorithms must be of type List");
 	}
 
 	@Test
@@ -372,9 +406,9 @@ public class OidcProviderConfigurationTests {
 					claims.put(OidcProviderMetadataClaimNames.ID_TOKEN_SIGNING_ALG_VALUES_SUPPORTED, Collections.emptyList());
 				});
 
-		assertThatThrownBy(builder::build)
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessageContaining("idTokenSigningAlgorithms cannot be empty");
+		assertThatIllegalArgumentException()
+				.isThrownBy(builder::build)
+				.withMessageContaining("idTokenSigningAlgorithms cannot be empty");
 	}
 
 	@Test
@@ -467,16 +501,16 @@ public class OidcProviderConfigurationTests {
 
 	@Test
 	public void claimWhenNameIsNullThenThrowIllegalArgumentException() {
-		assertThatThrownBy(() -> OidcProviderConfiguration.builder().claim(null, "value"))
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("name cannot be empty");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> OidcProviderConfiguration.builder().claim(null, "value"))
+				.withMessage("name cannot be empty");
 	}
 
 	@Test
 	public void claimWhenValueIsNullThenThrowIllegalArgumentException() {
-		assertThatThrownBy(() -> OidcProviderConfiguration.builder().claim("claim-name", null))
-				.isInstanceOf(IllegalArgumentException.class)
-				.hasMessage("value cannot be null");
+		assertThatIllegalArgumentException()
+				.isThrownBy(() -> OidcProviderConfiguration.builder().claim("claim-name", null))
+				.withMessage("value cannot be null");
 	}
 
 	@Test
