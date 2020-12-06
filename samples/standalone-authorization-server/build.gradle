@@ -1,0 +1,25 @@
+apply plugin: 'io.spring.convention.spring-module'
+
+group 'org.springframework.security.experimental'
+version '0.1.0-SNAPSHOT'
+ext.springVersion = '5.3.1'
+ext.tomcatVersion = '9.0.40'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+	implementation "org.apache.tomcat.embed:tomcat-embed-core:$tomcatVersion"
+	implementation "org.apache.tomcat.embed:tomcat-embed-jasper:$tomcatVersion"
+	implementation "org.springframework:spring-core"
+	implementation "org.springframework:spring-context"
+	implementation "org.springframework:spring-webmvc"
+	implementation project(':spring-security-oauth2-authorization-server')
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+}
+
+test {
+    useJUnitPlatform()
+}
