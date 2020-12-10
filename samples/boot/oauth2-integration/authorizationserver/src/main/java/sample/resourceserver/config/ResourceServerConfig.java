@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.config;
+package sample.resourceserver.config;
 
+import org.springframework.boot.web.server.WebServerFactoryCustomizer;
+import org.springframework.boot.web.servlet.server.ConfigurableServletWebServerFactory;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -31,31 +33,24 @@ import static org.springframework.security.config.Customizer.withDefaults;
  * @since 0.1.0
  */
 @EnableWebSecurity
-public class DefaultSecurityConfig {
+public class ResourceServerConfig {
 
 	// formatter:off
 	@Bean
-	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
+	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http
-			.authorizeRequests(authorizeRequests ->
-				authorizeRequests
-						.anyRequest().authenticated()
-			)
-			.formLogin(withDefaults());
+				.mvcMatcher("/messages/**")
+				.authorizeRequests()
+				.mvcMatchers("/messages/**").access("hasAuthority('SCOPE_message.read')")
+				.and()
+				.oauth2ResourceServer()
+				.jwt();
 		return http.build();
 	}
 	// formatter:on
 
-	// @formatter:off
 	@Bean
-	UserDetailsService users() {
-		UserDetails user = User.withDefaultPasswordEncoder()
-				.username("user1")
-				.password("password")
-				.roles("USER")
-				.build();
-		return new InMemoryUserDetailsManager(user);
+	WebServerFactoryCustomizer<ConfigurableServletWebServerFactory> portCustomizer() {
+		return factory -> factory.setPort(8090);
 	}
-	// @formatter:on
-
 }
