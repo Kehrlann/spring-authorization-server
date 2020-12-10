@@ -35,4 +35,4 @@ spring:
             token-uri: http://auth-server:9000/oauth2/token
 
 messages:
-  base-uri: http://localhost:8090/messages
+  base-uri: http://localhost:9000/messages

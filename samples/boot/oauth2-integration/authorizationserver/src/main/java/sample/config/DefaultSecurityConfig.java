@@ -38,9 +38,13 @@ public class DefaultSecurityConfig {
 	SecurityFilterChain defaultSecurityFilterChain(HttpSecurity http) throws Exception {
 		http
 			.authorizeRequests(authorizeRequests ->
-				authorizeRequests.anyRequest().authenticated()
+				authorizeRequests
+						.mvcMatchers("/messages/**").access("hasAuthority('SCOPE_message.read')")
+						.anyRequest().authenticated()
 			)
-			.formLogin(withDefaults());
+			.formLogin(withDefaults())
+			.oauth2ResourceServer()
+				.jwt();
 		return http.build();
 	}
 	// formatter:on
