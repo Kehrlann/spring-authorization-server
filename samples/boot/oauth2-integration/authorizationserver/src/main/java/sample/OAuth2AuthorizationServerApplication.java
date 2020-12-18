@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import sample.resourceserver.ResourceServerApplication;
 
 /**
@@ -27,22 +28,22 @@ import sample.resourceserver.ResourceServerApplication;
  * @since 0.0.1
  */
 @SpringBootApplication(scanBasePackages = {"sample.config"})
-public class OAuth2AuthorizationServerApplication implements CommandLineRunner {
+public class OAuth2AuthorizationServerApplication {
 
 	private final Logger logger = LoggerFactory.getLogger(OAuth2AuthorizationServerApplication.class);
-	private Thread resourceServerThread;
+//	private Thread resourceServerThread;
 
 	public static void main(String[] args) {
 		SpringApplication.run(OAuth2AuthorizationServerApplication.class, args);
 	}
 
-	@Override
-	public void run(String... args) {
-		logger.info("Hello 🥰🥳");
-		resourceServerThread = new Thread(
-				() -> SpringApplication.run(ResourceServerApplication.class, new String[]{})
-		);
-		resourceServerThread.start();
-		logger.info("Running 🏃👟‍");
-	}
+//	@Override
+//	public void run(String... args) {
+//		logger.info("Hello 🥰🥳");
+//		resourceServerThread = new Thread(
+//				() -> SpringApplication.run(ResourceServerApplication.class, new String[]{})
+//		);
+//		resourceServerThread.start();
+//		logger.info("Running 🏃👟‍");
+//	}
 }
