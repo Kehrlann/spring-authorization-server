@@ -1,12 +1,7 @@
 apply plugin: 'io.spring.convention.spring-sample-boot'
 
-springBoot {
-	mainClass = 'sample.OAuth2AuthorizationServerApplication'
-}
-
 dependencies {
 	compile 'org.springframework.boot:spring-boot-starter-web'
 	compile 'org.springframework.boot:spring-boot-starter-security'
-	compile 'org.springframework.boot:spring-boot-starter-oauth2-resource-server'
 	compile project(':spring-security-oauth2-authorization-server')
 }
