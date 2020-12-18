@@ -1,7 +1,7 @@
 package sample.client;
 
-import org.junit.After;
-import org.junit.Before;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,14 +24,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class OAuth2ClientApplicationTest {
 
-	private ConfigurableApplicationContext authorizationServer;
+	private static ConfigurableApplicationContext authorizationServer;
+	private static ConfigurableApplicationContext resourceServer;
 
 	@Autowired
 	private MockMvc mockMvc;
-	private ConfigurableApplicationContext resourceServer;
 
-	@Before
-	public void setUp() {
+	@BeforeClass
+	public static void beforeClass() {
 		authorizationServer = new SpringApplicationBuilder(OAuth2AuthorizationServerApplication.class)
 				.properties("spring.config.name:embeddedauthorizationserver")
 				.properties("server.port:9000")
@@ -46,8 +46,8 @@ public class OAuth2ClientApplicationTest {
 				.run();
 	}
 
-	@After
-	public void tearDown() {
+	@AfterClass
+	public static void afterClass() {
 		authorizationServer.stop();
 		resourceServer.stop();
 	}
