@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.web;
+package sample.authorizationserver;
 
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * @author Joe Grandja
  * @since 0.0.1
  */
-@RestController
-public class MessagesController {
+@SpringBootApplication
+public class OAuth2AuthorizationServerApplication {
 
-	@GetMapping("/messages")
-	public String[] getMessages() {
-		return new String[] {"Message 1", "Message 2", "Message 3"};
+	public static void main(String[] args) {
+		SpringApplication.run(OAuth2AuthorizationServerApplication.class, args);
 	}
+
 }

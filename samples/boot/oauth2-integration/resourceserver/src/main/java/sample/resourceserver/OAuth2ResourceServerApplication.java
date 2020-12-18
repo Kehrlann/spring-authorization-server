@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample;
+package sample.resourceserver;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -23,10 +23,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @since 0.0.1
  */
 @SpringBootApplication
-public class OAuth2AuthorizationServerApplication {
+public class OAuth2ResourceServerApplication {
 
 	public static void main(String[] args) {
-		SpringApplication.run(OAuth2AuthorizationServerApplication.class, args);
+		SpringApplication.run(OAuth2ResourceServerApplication.class, args);
 	}
 
 }

@@ -13,25 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package sample.web;
+package sample.client;
 
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
  * @author Joe Grandja
  * @since 0.0.1
  */
-@Controller
-public class DefaultController {
+@SpringBootApplication
+public class OAuth2ClientApplication {
 
-	@GetMapping("/")
-	public String root() {
-		return "redirect:/index";
+	public static void main(String[] args) {
+		SpringApplication.run(OAuth2ClientApplication.class, args);
 	}
 
-	@GetMapping("/index")
-	public String index() {
-		return "index";
-	}
 }
