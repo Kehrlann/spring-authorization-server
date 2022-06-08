@@ -24,6 +24,7 @@ import java.util.Set;
 import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.AuthorityUtils;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -37,6 +38,7 @@ import org.springframework.security.oauth2.server.authorization.authentication.O
 import org.springframework.security.oauth2.server.authorization.authentication.OAuth2AuthorizationCodeRequestAuthenticationToken;
 import org.springframework.security.oauth2.server.authorization.web.OAuth2AuthorizationEndpointFilter;
 import org.springframework.security.web.authentication.AuthenticationConverter;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.MultiValueMap;
@@ -56,9 +58,9 @@ import org.springframework.util.StringUtils;
 public final class OAuth2AuthorizationCodeRequestAuthenticationConverter implements AuthenticationConverter {
 	private static final String DEFAULT_ERROR_URI = "https://datatracker.ietf.org/doc/html/rfc6749#section-4.1.2.1";
 	private static final String PKCE_ERROR_URI = "https://datatracker.ietf.org/doc/html/rfc7636#section-4.4.1";
-	private static final Authentication ANONYMOUS_AUTHENTICATION = new AnonymousAuthenticationToken(
-			"anonymous", "anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
 	private static final RequestMatcher OIDC_REQUEST_MATCHER = createOidcRequestMatcher();
+
+	private final static AuthenticationDetailsSource<HttpServletRequest, ?> authenticationDetailsSource = new WebAuthenticationDetailsSource();
 
 	@Override
 	public Authentication convert(HttpServletRequest request) {
@@ -89,7 +91,7 @@ public final class OAuth2AuthorizationCodeRequestAuthenticationConverter impleme
 
 		Authentication principal = SecurityContextHolder.getContext().getAuthentication();
 		if (principal == null) {
-			principal = ANONYMOUS_AUTHENTICATION;
+			principal = createAnonymousAuthenticationToken(request);
 		}
 
 		// redirect_uri (OPTIONAL)
@@ -179,6 +181,13 @@ public final class OAuth2AuthorizationCodeRequestAuthenticationConverter impleme
 		};
 		return new AndRequestMatcher(
 				postMethodMatcher, responseTypeParameterMatcher, openidScopeMatcher);
+	}
+
+	private static AnonymousAuthenticationToken createAnonymousAuthenticationToken(HttpServletRequest request) {
+		AnonymousAuthenticationToken anonymousAuthentication = new AnonymousAuthenticationToken("anonymous",
+				"anonymousUser", AuthorityUtils.createAuthorityList("ROLE_ANONYMOUS"));
+		anonymousAuthentication.setDetails(authenticationDetailsSource.buildDetails(request));
+		return anonymousAuthentication;
 	}
 
 	private static void throwError(String errorCode, String parameterName) {
